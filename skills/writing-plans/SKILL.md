@@ -118,6 +118,7 @@ Every step must contain the actual content an engineer needs. These are **plan f
 - Complete code in every step — if a step changes code, show the code
 - Exact commands with expected output
 - DRY, YAGNI, TDD, frequent commits
+- Edge-case rows from the spec (Kloudify-flavored projects) become tasks in the plan; never silently drop them
 
 ## Self-Review
 
@@ -128,6 +129,8 @@ After writing the complete plan, look at the spec with fresh eyes and check the 
 **2. Placeholder scan:** Search your plan for red flags — any of the patterns from the "No Placeholders" section above. Fix them.
 
 **3. Type consistency:** Do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks? A function called `clearLayers()` in Task 3 but `clearFullLayers()` in Task 7 is a bug.
+
+**4. Edge-case coverage** (Kloudify-flavored projects only): If the spec contains a `## Edge cases triaged` section (per Kloudify edge-case-sweep mandate from brainstorming step 6), verify that every row marked `implemented` has a corresponding task in this plan that implements + tests it. List gaps. If a gap is found, the fix is to add a task — not to downgrade the row's status to `out-of-scope` (status downgrades require explicit user sign-off, since `out-of-scope` carries a documented trigger to revisit; downgrading silently loses that trigger). This is a SOFT check: the spec already enforced the HARD-GATE at brainstorming time. Here we're verifying the plan honors what the spec committed to. If the spec has no edge-case section (e.g. brainstorming was skipped or the project is non-Kloudify), this check is a no-op.
 
 If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
 
