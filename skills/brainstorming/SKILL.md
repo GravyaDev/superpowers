@@ -11,6 +11,8 @@ Start by understanding the current project context, then ask questions one at a 
 
 <HARD-GATE>
 Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it. This applies to EVERY project regardless of perceived simplicity.
+
+In Kloudify-flavored projects (those with `.claude/kloudify/`): do NOT write the spec doc until the edge-case sweep table is populated per step 6. The HARD-GATE in step 6 is downstream of this one — design approval first, edge-case sweep second, spec doc third.
 </HARD-GATE>
 
 ## Anti-Pattern: "This Is Too Simple To Need A Design"
@@ -26,10 +28,11 @@ You MUST create a task for each of these items and complete them in order:
 3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
 5. **Present design** — in sections scaled to their complexity, get user approval after each section
-6. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
-7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
-8. **User reviews written spec** — ask user to review the spec file before proceeding
-9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+6. **Edge-case sweep** (Kloudify HARD-GATE — only fires in projects with `.claude/kloudify/`) — for every Kloudify-flavored project, the design is not complete until you have produced an explicit edge-case enumeration. Walk the 12-category Kloudify taxonomy (see `.claude/kloudify/universal-rules.md` "Edge-case enumeration is MANDATORY" section, or the canonical taxonomy table at https://github.com/GravyaDev/Kloudify/blob/main/universal-rules.md) and for each category record at least one row in the format `| # | Scenario | Failure mode | Mitigation | Status |`. Status MUST be one of: `implemented` / `out-of-scope` / `already-covered` / `non-bug`. Empty buckets are NOT acceptable — write `none — input is constrained by <x>` so the reader sees the bucket was considered. The 12 categories: external-dependency failure, abuse/rate-limit vector, sibling-actor variants, sibling-flow contamination, malformed/boundary input, race/concurrency, partial failure/atomicity, transient/retryable error, tenant/scope leakage, state invariant violation, empty/cold-start, time/timezone. The spec doc you write in step 7 MUST contain a `## Edge cases triaged` section with the populated table. Skipping this step or writing the spec without the table is a HARD-GATE violation in the same class as skipping a `MANDATORY` step. *Why*: empirical 2026-05-01 — a clean 30-line auth-middleware fix shipped covering only 1 of 9 actual edge cases. User intervention forced enumeration; three of the missed cases were load-bearing in production. The cost of the table is minutes; the cost of a missed edge case is hours of triage.
+7. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
+8. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
+9. **User reviews written spec** — ask user to review the spec file before proceeding
+10. **Transition to implementation** — invoke writing-plans skill to create implementation plan
 
 ## Process Flow
 
@@ -55,7 +58,8 @@ digraph brainstorming {
     "Propose 2-3 approaches" -> "Present design sections";
     "Present design sections" -> "User approves design?";
     "User approves design?" -> "Present design sections" [label="no, revise"];
-    "User approves design?" -> "Write design doc" [label="yes"];
+    "User approves design?" -> "Edge-case sweep (Kloudify HARD-GATE)" [label="yes"];
+    "Edge-case sweep (Kloudify HARD-GATE)" -> "Write design doc";
     "Write design doc" -> "Spec self-review\n(fix inline)";
     "Spec self-review\n(fix inline)" -> "User reviews spec?";
     "User reviews spec?" -> "Write design doc" [label="changes requested"];
