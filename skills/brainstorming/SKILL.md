@@ -30,7 +30,7 @@ After drafting each design section, before outputting it to chat, the AI checks:
 3. *Coupling-claim grounding*: any "Y depends on X" / "this won't break Z" assertion must reference either the actual code or the spec, not an internal model assumption. If the AI cannot back the claim with a code anchor, soften the claim (`"likely depends on"` + open question for user) or drop it.
 4. *Length appropriateness*: a section longer than 300 words on a small problem is a self-review failure — split or compress.
 
-When all 4 pass, output the section and proceed to the next. Do NOT ask "looks right?".
+When all 4 pass, output the section and proceed to the next step. Same turn, no interruption. Do NOT ask.
 
 **Step 6 — Edge-case sweep self-review**
 After producing the 12-row edge-case table, before proceeding, the AI checks:
