@@ -14,6 +14,17 @@ In Kloudify-flavored projects (those with `.claude/kloudify/`), this skill opera
 
 **Per-phase self-review specs** (apply in auto-confirm mode only). Each phase has its own pass/fail criteria — these are NOT a generic "looks ok?" rubric. If a phase fails, fix inline and re-run the criterion before proceeding.
 
+**Phase 0 — Prior-work surfacing (Kloudify work-graph, v2.55.0+)**
+Before scoping, surface prior plans / open-threads / shipped-work that overlap this plan's topic, so you extend or supersede rather than author a duplicate (the `surface-prior-work-before-authoring-plan` universal rule). Run, if the work-graph scripts are installed:
+```bash
+if [ -d "$CLAUDE_PROJECT_DIR/.claude/kloudify/bin" ]; then WGB="$CLAUDE_PROJECT_DIR/.claude/kloudify/bin"; else WGB="$CLAUDE_PROJECT_DIR/bin"; fi
+if [ -f "$WGB/reconcile-work-graph.py" ]; then
+  python "$WGB/reconcile-work-graph.py" >/dev/null 2>&1 || true
+  python "$WGB/surface-work-context.py" --author "<this plan's topic or title>" 2>/dev/null || true
+fi
+```
+If prior work surfaces, review it before writing — extend or supersede the existing plan/thread. If a prior plan already covers this topic, STOP and surface to your human partner. Skips silently when the work-graph scripts are absent (pre-v2.55.0 Kloudify) or outside a Kloudify project. Detection: `[ -d .claude/kloudify ]` (same gate as the rest of this block).
+
 **Phase A — Scope check**
 1. *Multi-subsystem detection*: does the spec describe more than one independently-shippable subsystem (e.g. "auth + billing + notifications")? If yes, this is a decomposition failure that should have been caught during brainstorming. STOP and surface to the user — do NOT silently write a plan that conflates them.
 2. *Single-subsystem confirmation*: state in one sentence which subsystem this plan covers. If you cannot state it crisply, the spec itself is ambiguous and step 5 self-review (in brainstorming) should have caught it. STOP and surface.
