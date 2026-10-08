@@ -7,94 +7,148 @@ description: "You MUST use this before any creative work - creating features, bu
 
 Help turn ideas into fully formed designs and specs through natural collaborative dialogue.
 
-Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design and get user approval.
+Start by classifying how much process the request needs, then work
+through your path: understand the context, refine the idea, present a
+design, and get your human partner's approval.
+
+## Establish Shared Understanding
+
+The outcome of brainstorming is an understanding your human partner can
+recognize and correct, grounded in what they want to accomplish.
+
+1. **Discover intent.** Use the request and available context to identify
+   the intended outcome, who it is for, and what success looks like. When
+   that information is missing, ask one focused question about purpose or
+   intended use before proposing features or an approach. Knowing the app
+   genre does not tell you why your partner wants it. Gathering missing
+   requirements does not ask them to authorize the task again.
+2. **Write back your understanding.** Summarize the intended outcome,
+   relevant constraints, and success criteria in a short note your partner
+   can assess. Separate what they said from assumptions. Invite correction
+   and incorporate their answer before treating this as the design brief.
+3. **Carry intent into the design.** Preserve the agreed understanding in
+   the selected path's design artifact: the written spec for architectural
+   work, or the in-chat design/probe for bounded work and spikes. Check
+   proposed features and technical choices against that understanding.
+
+When the request already supplies the purpose and constraints, reflect
+that understanding instead of asking the same questions again. Keep the
+note concise; its accuracy and the opportunity to correct it matter.
 
 <HARD-GATE>
-Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it. This applies to EVERY project regardless of perceived simplicity.
+Before taking any implementation action, including invoking an
+implementation skill, writing product code, scaffolding, installing
+product dependencies, or creating an external project, complete the
+selected path's prerequisites:
 
-In Kloudify-flavored projects (those with `.claude/kloudify/`): do NOT write the spec doc until the edge-case sweep table is populated per step 6. The HARD-GATE in step 6 is downstream of this one — design approval first, edge-case sweep second, spec doc third.
+- Spike: the human partner approves the question and probe.
+- Bounded: the human partner approves the short in-chat design.
+- Architectural: the human partner reviews and approves the written spec,
+  then reviews the written implementation plan and selects its execution
+  method. Conversational design approval only permits writing the spec;
+  written-spec approval only permits invoking writing-plans.
+
+A reply approves the stage actually presented. Approval of an idea or
+feature scope does not approve artifacts that do not exist yet. Resume
+at the earliest incomplete stage; do not turn one approval into permission
+to skip the rest of the selected path. Read-only project exploration is
+allowed while those prerequisites remain incomplete.
 </HARD-GATE>
 
-<KLOUDIFY-AUTO-CONFIRM>
-In Kloudify-flavored projects (those with `.claude/kloudify/`), this skill operates in **auto-confirm mode**:
+## Three Paths
 
-- **Steps 1-4 remain user-gated** as designed: explore, visual offer, clarifying questions, propose approaches. The user provides input; the AI does NOT auto-confirm these.
-- **Steps 5-10 run unattended** with **self-review specs imposed per-step** where a user gate previously existed. Each step has its own pass/fail criteria below — these are NOT a generic "looks ok?" rubric. If a step fails its self-review, the AI fixes inline and re-runs the criterion before proceeding; if the same step fails self-review twice in a row, the AI surfaces the issue to the user and waits.
+Before your first question, classify the request and say the
+classification out loud — "this looks bounded, so I'll present a short
+design here rather than write a spec" — so your human partner can
+override it:
 
-**Per-step self-review specs** (apply in auto-confirm mode only):
+- **Spike** — a feasibility question ("can we...", "is it possible...",
+  "quick and dirty is fine") whose output is an answer, not code you
+  keep. Present the question and what you'll try in 2-3 sentences, get
+  a nod, then find out as cheaply as correctness allows. No design
+  doc, no spec file. Report findings as a recommendation; anything you
+  built stays labeled throwaway.
+- **Bounded** — a well-scoped change to code that already exists in
+  this repo: a new flag, a small endpoint, a one-file fix.
+  Understanding the kind of app is not enough — bounded means the flow
+  you are changing is already here to read. If there is no existing
+  flow to change, the task is not bounded. Ask the clarifying
+  questions that matter, present a short design IN CHAT (a few
+  sentences to a few short paragraphs), and STOP. Implementation
+  starts only after your human partner says yes to that design — a
+  bounded task's approval is as hard a gate as an architectural
+  one. No spec file, no implementation plan document.
+- **Architectural** — new projects, new subsystems, changes that
+  restructure how components fit together or alter interfaces others
+  depend on. Follow the full process: questions, approaches, sectioned
+  design, written spec, then the writing-plans skill.
 
-**Step 5 — Present design (per-section self-review)**
-After drafting each design section, before outputting it to chat, the AI checks:
-1. *Concreteness*: does the section name actual files, modules, or call paths in this codebase? (Generic "use the auth middleware" without naming the file → fail.)
-2. *Decision visibility*: are the trade-offs the AI implicitly resolved while writing this section called out? (E.g. "we keep the existing X interface" — say so explicitly so a reader sees what was chosen.)
-3. *Coupling-claim grounding*: any "Y depends on X" / "this won't break Z" assertion must reference either the actual code or the spec, not an internal model assumption. If the AI cannot back the claim with a code anchor, soften the claim (`"likely depends on"` + open question for user) or drop it.
-4. *Length appropriateness*: a section longer than 300 words on a small problem is a self-review failure — split or compress.
+When in doubt between two paths, take the heavier one. The ratchet is
+one-way: hidden complexity discovered mid-task upgrades the path —
+stop, say so, and step up. Nothing downgrades mid-task.
 
-When all 4 pass, output the section and proceed to the next step. Same turn, no interruption. Do NOT ask.
+## Anti-Pattern: "Too Simple To Need Approval"
 
-**Step 6 — Edge-case sweep self-review**
-After producing the 12-row edge-case table, before proceeding, the AI checks:
-1. *No empty buckets*: every one of the 12 categories has at least one row. A bucket marked "n/a" without a justification is a fail; rewrite as `"none — <input class is constrained by X>"` and verify X is real.
-2. *Status distribution sanity*: if more than 60% of rows are `out-of-scope`, the AI is shrinking the problem rather than enumerating it — re-walk the buckets and look harder. (Empirical anti-pattern: a single "out-of-scope: future work" row blanket-applied across 8 buckets.)
-3. *No unbacked `already-covered`*: every `already-covered` row must name the layer that covers it (e.g. *"already-covered by FastAPI rate-limit middleware in routes/auth.py"*). A bare `already-covered` with no anchor is a fail.
-4. *No silent `non-bug`*: every `non-bug` row needs a one-line *why* — "this is by design because X". Without the why, downgrade to `out-of-scope` with a documented trigger to revisit.
+Every path ends with your human partner approving the required design
+before implementation. A bounded change may need only two sentences in
+chat. A new todo-list project is architectural and requires the written
+spec and planning handoffs. Scale the artifact to the selected path;
+complete that path's reviews before implementation.
 
-**Step 7 — Write design doc (post-write check)**
-After saving and committing the spec, the AI verifies:
-1. The committed file path exists at `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` (or the project-overridden path).
-2. The commit's diff contains the spec content (`git show HEAD --stat` shows the new file with non-zero insertions).
-3. The spec contains a `## Edge cases triaged` section with the table from step 6 verbatim.
-4. The spec is under 400 lines (Kloudify Document Authoring Discipline rule). If over, split into spec + appendix and re-commit.
+## Red Flags
 
-If any check fails, fix and re-commit before step 8.
-
-**Step 8 — Spec self-review (the existing 4-check inline scan)**
-This step is already a self-review by design (placeholder scan, internal consistency, scope check, ambiguity check). In auto-confirm mode the AI runs it inline as documented and proceeds when issues are fixed; **adds one extra check**:
-5. *Reachability*: does anything in the spec reference a file/function/flag that the AI has not actually verified exists? If yes, either verify (read the file / grep) or rewrite to remove the reference. Spec must not depend on phantom code.
-
-**Step 9 — Spec proceed-or-interrupt announcement (replaces user review gate)**
-The AI emits one chat message in this exact shape:
-
-> *"Spec at `<path>` (commit `<sha>`, <N> lines, <K> edge cases triaged). Proceeding to writing-plans in this turn. Interrupt now if you want to review."*
-
-The AI then **immediately** in the same turn invokes `writing-plans` — it does NOT wait for a reply. The user can stop the next turn by typing while the AI is still in writing-plans, but there is no synchronous gate.
-
-**Step 10 — Transition to writing-plans**
-No self-review needed. Just invoke `writing-plans`. The plan-authoring skill has its own auto-confirm spec.
-
-**Cross-cutting interrupt protocol**: at any point during steps 5-10, if the user types a message in chat, the AI MUST treat it as a potential override. Read the message before continuing the next step. The user's right to interrupt is not negotiable — auto-confirm means "no synchronous gate", not "ignore user input".
-
-The user retains the right to interrupt at any moment. The default after step 4 is **proceed**, not **wait**. This is a deliberate inversion of the upstream "incremental validation" principle — Kloudify users have already chosen the approach in step 4 and want the rest to flow.
-
-This mode does NOT apply outside Kloudify projects (no `.claude/kloudify/` present). Detection: `[ -d .claude/kloudify ]`. The check fires once at skill start, not per-step.
-</KLOUDIFY-AUTO-CONFIRM>
-
-## Anti-Pattern: "This Is Too Simple To Need A Design"
-
-Every project goes through this process. A todo list, a single-function utility, a config change — all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple projects), but you MUST present it and get approval.
+| Thought | Reality |
+|---------|---------|
+| "This is too simple to need a design" | Follow the selected path: a bounded change gets a short chat design; an architectural change gets the written spec and planning handoffs. |
+| "I'll call it bounded and skip the spec" | Reaching for a label to skip work IS the doubt — take the heavier path. |
+| "It's bounded and the design is obvious — I'll start while they read it" | The gate is the approval, not the design's length. Present, then stop until you hear yes. |
+| "I understand this kind of app, so it's bounded" | Bounded measures the repo, not your familiarity. A new project has no existing flow — it is architectural. |
+| "The spike works, so I'll keep the code" | A spike's output is an answer. Keeping the code is a new request — classify it. |
+| "It grew, but I'm almost done — no need to re-classify" | Hidden complexity upgrades the path mid-task. Stop and say so. |
+| "They approved the spike, so the follow-up change is approved too" | Each task gets its own classification and its own approval. |
 
 ## Checklist
 
-You MUST create a task for each of these items and complete them in order:
+Classify first, announce the path, then create a task for each item on
+your path and complete them in order.
 
+**Spike:**
+1. **Explore project context** — enough to frame the probe
+2. **Present question + probe plan** — 2-3 sentences
+3. **Get approval** — a nod is enough
+4. **Investigate** — as cheaply as correctness allows
+5. **Report findings** — a recommendation; label anything built as throwaway
+
+**Bounded:**
 1. **Explore project context** — check files, docs, recent commits
-2. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
+2. **Ask clarifying questions** — one at a time, the ones that matter
+3. **Present short design in chat** — approach, files touched, testing
+4. **Get approval** — STOP and wait for an explicit yes; presenting the design and starting in the same breath is skipping the gate
+5. **Implement** — proceed with the normal development workflow (TDD applies); no plan document
+
+**Architectural:**
+1. **Explore project context** — check files, docs, recent commits
+2. **Offer the visual companion just-in-time** — NOT upfront. The first time a question would genuinely be clearer shown than described, offer it then (its own message); on approval its browser tab opens for you. If no visual question ever arises, never offer it. See the Visual Companion section below.
 3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
-5. **Present design** — in sections scaled to their complexity. Get user approval after each section *outside* Kloudify projects. *In Kloudify projects (auto-confirm mode):* output each section to chat for visibility, then proceed to the next without pausing — apply the per-section self-review checklist (concreteness / decision visibility / coupling-claim grounding / length) defined in the KLOUDIFY-AUTO-CONFIRM block above.
-6. **Edge-case sweep** (Kloudify HARD-GATE — only fires in projects with `.claude/kloudify/`) — for every Kloudify-flavored project, the design is not complete until you have produced an explicit edge-case enumeration. Walk the 12-category Kloudify taxonomy (see `.claude/kloudify/universal-rules.md` "Edge-case enumeration is MANDATORY" section, or the canonical taxonomy table at https://github.com/GravyaDev/Kloudify/blob/main/universal-rules.md) and for each category record at least one row in the format `| # | Scenario | Failure mode | Mitigation | Status |`. Status MUST be one of: `implemented` / `out-of-scope` / `already-covered` / `non-bug`. Empty buckets are NOT acceptable — write `none — input is constrained by <x>` so the reader sees the bucket was considered. The 12 categories: external-dependency failure, abuse/rate-limit vector, sibling-actor variants, sibling-flow contamination, malformed/boundary input, race/concurrency, partial failure/atomicity, transient/retryable error, tenant/scope leakage, state invariant violation, empty/cold-start, time/timezone. The spec doc you write in step 7 MUST contain a `## Edge cases triaged` section with the populated table. Skipping this step or writing the spec without the table is a HARD-GATE violation in the same class as skipping a `MANDATORY` step. *Why*: empirical 2026-05-01 — a clean 30-line auth-middleware fix shipped covering only 1 of 9 actual edge cases. User intervention forced enumeration; three of the missed cases were load-bearing in production. The cost of the table is minutes; the cost of a missed edge case is hours of triage.
-7. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
-8. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
-9. **User reviews written spec** — ask user to review the spec file before proceeding. *In Kloudify projects (auto-confirm mode):* DO NOT pause for review. Announce *"Spec at `<path>` (commit `<sha>`), proceeding to writing-plans. Interrupt now if you want to review."* and proceed immediately to step 10.
-10. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+5. **Present design** — in sections scaled to their complexity, get user approval after each section
+6. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
+7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
+8. **User reviews written spec** — ask user to review the spec file before proceeding
+9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
 
 ## Process Flow
 
 ```dot
 digraph brainstorming {
+    "Classify: spike / bounded / architectural" [shape=diamond];
+    "Present question + probe (2-3 sentences)" [shape=box];
+    "Ask clarifying questions (bounded)" [shape=box];
+    "Present short design in chat" [shape=box];
+    "Human approves?" [shape=diamond];
+    "Investigate; report recommendation" [shape=doublecircle];
+    "Implement via normal workflow (no plan doc)" [shape=doublecircle];
     "Explore project context" [shape=box];
-    "Visual questions ahead?" [shape=diamond];
-    "Offer Visual Companion\n(own message, no other content)" [shape=box];
     "Ask clarifying questions" [shape=box];
     "Propose 2-3 approaches" [shape=box];
     "Present design sections" [shape=box];
@@ -103,17 +157,23 @@ digraph brainstorming {
     "Spec self-review\n(fix inline)" [shape=box];
     "User reviews spec?" [shape=diamond];
     "Invoke writing-plans skill" [shape=doublecircle];
+    "Hidden complexity? Upgrade path" [shape=box];
 
-    "Explore project context" -> "Visual questions ahead?";
-    "Visual questions ahead?" -> "Offer Visual Companion\n(own message, no other content)" [label="yes"];
-    "Visual questions ahead?" -> "Ask clarifying questions" [label="no"];
-    "Offer Visual Companion\n(own message, no other content)" -> "Ask clarifying questions";
+    "Classify: spike / bounded / architectural" -> "Present question + probe (2-3 sentences)" [label="spike"];
+    "Classify: spike / bounded / architectural" -> "Ask clarifying questions (bounded)" [label="bounded"];
+    "Classify: spike / bounded / architectural" -> "Explore project context" [label="architectural"];
+    "Present question + probe (2-3 sentences)" -> "Human approves?";
+    "Ask clarifying questions (bounded)" -> "Present short design in chat";
+    "Present short design in chat" -> "Human approves?";
+    "Human approves?" -> "Investigate; report recommendation" [label="spike: yes"];
+    "Human approves?" -> "Implement via normal workflow (no plan doc)" [label="bounded: yes"];
+    "Hidden complexity? Upgrade path" -> "Classify: spike / bounded / architectural";
+    "Explore project context" -> "Ask clarifying questions";
     "Ask clarifying questions" -> "Propose 2-3 approaches";
     "Propose 2-3 approaches" -> "Present design sections";
     "Present design sections" -> "User approves design?";
     "User approves design?" -> "Present design sections" [label="no, revise"];
-    "User approves design?" -> "Edge-case sweep (Kloudify HARD-GATE)" [label="yes"];
-    "Edge-case sweep (Kloudify HARD-GATE)" -> "Write design doc";
+    "User approves design?" -> "Write design doc" [label="yes"];
     "Write design doc" -> "Spec self-review\n(fix inline)";
     "Spec self-review\n(fix inline)" -> "User reviews spec?";
     "User reviews spec?" -> "Write design doc" [label="changes requested"];
@@ -121,9 +181,20 @@ digraph brainstorming {
 }
 ```
 
-**The terminal state is invoking writing-plans.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. The ONLY skill you invoke after brainstorming is writing-plans.
+**Terminal states are path-bound.** Architectural: the ONLY skill you
+invoke after brainstorming is writing-plans — never frontend-design,
+mcp-builder, or any other implementation skill. Bounded: after
+approval, implementation proceeds directly through the normal
+development workflow; no plan document. Spike: the terminal state is a
+reported recommendation.
 
 ## The Process
+
+The subsections below serve the bounded and architectural paths (a
+spike stops at "present the probe, get a nod"). Sections from
+**Exploring approaches** onward are architectural-path depth — for
+bounded work, context plus a few questions plus a short in-chat design
+is the whole process.
 
 **Understanding the idea:**
 
@@ -140,6 +211,7 @@ digraph brainstorming {
 - Propose 2-3 different approaches with trade-offs
 - Present options conversationally with your recommendation and reasoning
 - Lead with your recommended option and explain why
+- YAGNI ruthlessly - remove unnecessary features from every approach and design
 
 **Presenting the design:**
 
@@ -162,7 +234,7 @@ digraph brainstorming {
 - Where existing code has problems that affect the work (e.g., a file that's grown too large, unclear boundaries, tangled responsibilities), include targeted improvements as part of the design - the way a good developer improves code they're working in.
 - Don't propose unrelated refactoring. Stay focused on what serves the current goal.
 
-## After the Design
+## After the Design (architectural path)
 
 **Documentation:**
 
@@ -182,41 +254,25 @@ After writing the spec document, look at it with fresh eyes:
 Fix any issues inline. No need to re-review — just fix and move on.
 
 **User Review Gate:**
-
-*Outside Kloudify projects:* After the spec review loop passes, ask the user to review the written spec before proceeding:
+After the spec review loop passes, ask the user to review the written spec before proceeding:
 
 > "Spec written and committed to `<path>`. Please review it and let me know if you want to make any changes before we start writing out the implementation plan."
 
 Wait for the user's response. If they request changes, make them and re-run the spec review loop. Only proceed once the user approves.
-
-*In Kloudify projects (auto-confirm mode):* DO NOT wait. Announce in chat:
-
-> "Spec at `<path>` (commit `<sha>`), proceeding to writing-plans. Interrupt now if you want to review."
-
-Then immediately invoke `writing-plans`. The user can interrupt if they need to; the default is to proceed. This is the deliberate inversion described in the KLOUDIFY-AUTO-CONFIRM block at the top of this file — do not gate, but do remain interruptible.
 
 **Implementation:**
 
 - Invoke the writing-plans skill to create a detailed implementation plan
 - Do NOT invoke any other skill. writing-plans is the next step.
 
-## Key Principles
-
-- **One question at a time** - Don't overwhelm with multiple questions
-- **Multiple choice preferred** - Easier to answer than open-ended when possible
-- **YAGNI ruthlessly** - Remove unnecessary features from all designs
-- **Explore alternatives** - Always propose 2-3 approaches before settling
-- **Incremental validation** - Present design, get approval before moving on
-- **Be flexible** - Go back and clarify when something doesn't make sense
-
 ## Visual Companion
 
 A browser-based companion for showing mockups, diagrams, and visual options during brainstorming. Available as a tool — not a mode. Accepting the companion means it's available for questions that benefit from visual treatment; it does NOT mean every question goes through the browser.
 
-**Offering the companion:** When you anticipate that upcoming questions will involve visual content (mockups, layouts, diagrams), offer it once for consent:
-> "Some of what we're working on might be easier to explain if I can show it to you in a web browser. I can put together mockups, diagrams, comparisons, and other visuals as we go. This feature is still new and can be token-intensive. Want to try it? (Requires opening a local URL)"
+**Offering the companion (just-in-time):** Do NOT offer it upfront. Wait until a question would genuinely be clearer shown than told — a real mockup / layout / diagram question, not merely a UI *topic*. The first time that happens, offer it then, as its own message:
+> "This next part might be easier if I show you — I can put together mockups, diagrams, and comparisons in a browser tab as we go. It's still new and can be token-intensive. Want me to? I'll open it for you."
 
-**This offer MUST be its own message.** Do not combine it with clarifying questions, context summaries, or any other content. The message should contain ONLY the offer above and nothing else. Wait for the user's response before continuing. If they decline, proceed with text-only brainstorming.
+**This offer MUST be its own message.** Only the offer — no clarifying question, summary, or other content. Wait for the user's response. If they accept, start the server with `--open` so their browser opens to the first screen automatically. If they decline, continue text-only and don't offer again unless they raise it.
 
 **Per-question decision:** Even after the user accepts, decide FOR EACH QUESTION whether to use the browser or the terminal. The test: **would the user understand this better by seeing it than reading it?**
 
