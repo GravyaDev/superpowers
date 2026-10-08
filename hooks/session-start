@@ -3,6 +3,10 @@
 
 set -euo pipefail
 
+# KLOUDIFY_SUPERPOWERS_BOOTSTRAP_OFF=1 skips the bootstrap injection entirely.
+# Skills stay available either way; only this SessionStart context is dropped.
+[ "${KLOUDIFY_SUPERPOWERS_BOOTSTRAP_OFF:-}" = "1" ] && exit 0
+
 # Determine plugin root directory
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
